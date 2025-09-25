@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distriction — Create Preview Link</title>
+  <meta name="description" content="Upload image + title + description + free view link → generate a shareable preview URL.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6C63FF;
+      --primary-dark: #5a52d4;
+      --secondary: #FF6584;
+      --dark: #0F172A;
+      --darker: #0A0F1F;
+      --light: #F8FAFC;
+      --gray: #94A3B8;
+      --gray-dark: #475569;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --maxw: 980px;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      --radius: 12px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+      background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+      color: var(--light);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--maxw);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tagline {
+      color: var(--gray);
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    .card-header {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .input-field, .textarea-field {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--light);
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .input-field:focus, .textarea-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px dashed var(--glass-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .file-input-label:hover {
+      border-color: var(--primary);
+      background: rgba(108, 99, 255, 0.05);
+    }
+
+    .file-input-label i {
+      margin-right: 8px;
+      color: var(--primary);
+    }
+
+    .image-preview {
+      margin-top: 10px;
+      max-width: 100%;
+      max-height: 200px;
+      display: none;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--gray);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--gray);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .output-container {
+      display: none;
+      margin-top: 25px;
+    }
+
+    .output-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .output-title i {
+      color: var(--primary);
+    }
+
+    .generated-link {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 15px;
+      word-break: break-all;
+      font-size: 14px;
+    }
+
+    .generated-link a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .generated-link a:hover {
+      text-decoration: underline;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .action-btn.copy {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .action-btn.copy:hover {
+      background: var(--primary-dark);
+    }
+
+    .action-btn.whatsapp {
+      background: #25D366;
+      color: white;
+    }
+
+    .action-btn.facebook {
+      background: #1877F2;
+      color: white;
+    }
+
+    .action-btn.twitter {
+      background: #1DA1F2;
+      color: white;
+    }
+
+    .preview-container {
+      display: none;
+      margin-top: 25px;
+    }
+
+    .preview-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preview-title i {
+      color: var(--primary);
+    }
+
+    .preview-card {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    @media (min-width: 768px) {
+      .preview-card {
+        flex-direction: row;
+      }
+    }
+
+    .preview-image {
+      flex: 0 0 250px;
+      max-width: 100%;
+    }
+
+    .preview-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-content {
+      padding: 20px;
+      flex: 1;
+    }
+
+    .preview-content h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .preview-content p {
+      color: var(--gray);
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .preview-button {
+      display: inline-block;
+      padding: 10px 18px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: var(--transition);
+      font-size: 14px;
+    }
+
+    .preview-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .preview-share {
+      margin-top: 15px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .warning {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 15px;
+      color: var(--danger);
+      font-size: 13px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: var(--gray);
+      font-size: 13px;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .loading {
+      animation: pulse 1.5s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 20px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .preview-card {
+        flex-direction: column;
+      }
+      
+      .preview-image {
+        flex: 0 0 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">D</div>
+        <div class="logo-text">Distriction</div>
+      </div>
+      <p class="tagline">আপনার কন্টেন্টের জন্য আকর্ষণীয় প্রিভিউ লিঙ্ক তৈরি করুন — সহজ, দ্রুত ও বিনামূল্যে</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <i>📤</i>
+        </div>
+        <h2 class="card-title">প্রিভিউ লিঙ্ক তৈরি করুন</h2>
+      </div>
+
+      <form id="form">
+        <div class="form-group">
+          <label for="title">শিরোনাম</label>
+          <input type="text" id="title" name="title" class="input-field" placeholder="আপনার কন্টেন্টের শিরোনাম লিখুন" required>
+        </div>
+
+        <div class="form-group">
+          <label for="desc">বর্ণনা</label>
+          <textarea id="desc" name="desc" class="textarea-field" rows="2" placeholder="সংক্ষিপ্ত বর্ণনা লিখুন (এক বা দুই লাইন)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="target">টার্গেট URL</label>
+          <input type="url" id="target" name="target" class="input-field" placeholder="https://example.com/your-content" required>
+        </div>
+
+        <div class="form-group">
+          <label for="image">ছবি (পোস্টার)</label>
+          <div class="file-input-wrapper">
+            <input type="file" id="image" name="image" class="file-input" accept="image/*" required>
+            <label for="image" class="file-input-label">
+              <i>📷</i> ছবি আপলোড করুন (JPG, PNG, GIF - সর্বোচ্চ 500KB)
+            </label>
+          </div>
+          <img id="imagePreview" class="image-preview" alt="Selected Image Preview">
+        </div>
+
+        <div class="button-group">
+          <button type="submit" id="generate" class="btn btn-primary">
+            <i>🚀</i> প্রিভিউ লিঙ্ক তৈরি করুন
+          </button>
+          <button type="button" id="clear" class="btn btn-secondary">
+            <i>🗑️</i> ফর্ম খালি করুন
+          </button>
+        </div>
+
+        <div class="hint">
+          <strong>টিপ:</strong> ছবির সাইজ 500KB এর কম রাখুন। ছবি Base64 হিসাবে URL-এ এনকোড হবে। সম্পূর্ণ ক্লায়েন্ট-সাইড টুল — কোনো ডেটা সার্ভারে যায় না।
+        </div>
+      </form>
+
+      <div id="output" class="output-container">
+        <div class="output-title">
+          <i>✅</i> আপনার প্রিভিউ লিঙ্ক তৈরি হয়েছে!
+        </div>
+        
+        <div class="generated-link">
+          <a id="outLink" href="#" target="_blank" rel="noopener"></a>
+        </div>
+        
+        <div class="action-buttons">
+          <button id="copyBtn" class="action-btn copy">
+            <i>📋</i> লিঙ্ক কপি করুন
+          </button>
+          <a id="wa" class="action-btn whatsapp" target="_blank">
+            <i>💬</i> WhatsApp
+          </a>
+          <a id="fb" class="action-btn facebook" target="_blank">
+            <i>👍</i> Facebook
+          </a>
+          <a id="tw" class="action-btn twitter" target="_blank">
+            <i>🐦</i> Twitter
+          </a>
+        </div>
+      </div>
+
+      <div id="preview" class="preview-container">
+        <div class="preview-title">
+          <i>👁️</i> প্রিভিউ দেখুন
+        </div>
+        
+        <div class="preview-card">
+          <div class="preview-image">
+            <a id="pvImgLink" href="#" target="_blank" rel="noopener">
+              <img id="pvImg" src="" alt="Preview image">
+            </a>
+          </div>
+          <div class="preview-content">
+            <h3 id="pvTitle">শিরোনাম এখানে</h3>
+            <p id="pvDesc">বর্ণনা এখানে...</p>
+            <a id="pvOpen" class="preview-button" href="#" target="_blank" rel="noopener">
+              <i>🔗</i> টার্গেট লিঙ্কে যান
+            </a>
+            
+            <div class="preview-share">
+              <button id="pvCopy" class="action-btn copy">
+                <i>📋</i> লিঙ্ক কপি করুন
+              </button>
+              <a id="pvWa" class="action-btn whatsapp" target="_blank">
+                <i>💬</i> WhatsApp
+              </a>
+              <a id="pvFb" class="action-btn facebook" target="_blank">
+                <i>👍</i> Facebook
+              </a>
+              <a id="pvTw" class="action-btn twitter" target="_blank">
+                <i>🐦</i> Twitter
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning">
+        <strong>সতর্কতা:</strong> অন্যের কপিরাইটকৃত কন্টেন্ট আপলোড বা শেয়ার করবেন না। এই টুলটি শুধুমাত্র আপনার নিজস্ব কন্টেন্টের জন্য ব্যবহার করুন।
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Distriction - প্রিভিউ লিঙ্ক জেনারেটর | সম্পূর্ণ ক্লায়েন্ট-সাইডে কাজ করে, কোন ডেটা সার্ভারে সংরক্ষণ করা হয় না</p>
+    </div>
+  </div>
+
+  <script>
+    // Helper: encode/decode JSON safely in URL
+    function encodeData(obj) {
+      const json = JSON.stringify(obj);
+      return btoa(unescape(encodeURIComponent(json)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function decodeData(str) {
+      try {
+        while (str.length % 4) str += '=';
+        str = str.replace(/-/g, '+').replace(/_/g, '/');
+        const json = decodeURIComponent(escape(atob(str)));
+        return JSON.parse(json);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Read file as DataURL
+    function fileToDataURL(file) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = () => rej(new Error('ফাইল পড়তে সমস্যা হয়েছে'));
+        r.readAsDataURL(file);
+      });
+    }
+
+    // Build share URL
+    function buildShareUrl(encoded) {
+      const loc = window.location;
+      return loc.origin + loc.pathname + '?p=' + encoded;
+    }
+
+    // DOM Elements
+    const form = document.getElementById('form');
+    const output = document.getElementById('output');
+    const preview = document.getElementById('preview');
+    const generateBtn = document.getElementById('generate');
+    const clearBtn = document.getElementById('clear');
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+
+    // Show image preview
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          imagePreview.src = event.target.result;
+          imagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        imagePreview.style.display = 'none';
+      }
+    });
+
+    // Form submit handler
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      generateBtn.disabled = true;
+      generateBtn.innerHTML = '<i>⏳</i> প্রক্রিয়াকরণ চলছে...';
+      generateBtn.classList.add('loading');
+
+      output.style.display = 'none';
+      preview.style.display = 'none';
+
+      try {
+        const fd = new FormData(form);
+        const title = (fd.get('title') || '').trim();
+        const desc = (fd.get('desc') || '').trim();
+        const target = (fd.get('target') || '').trim();
+        const file = fd.get('image');
+
+        if (!title || !target || !file) {
+          alert('শিরোনাম, টার্গেট URL এবং ছবি আবশ্যক।');
+          throw new Error('Missing required fields');
+        }
+
+        if (file.size > 500 * 1024) {
+          alert('দয়া করে 500KB এর ছোট ছবি ব্যবহার করুন (Base64 URL লিমিটের কারণে)।');
+          throw new Error('File too large');
+        }
+
+        // Convert image to Base64
+        const imageDataUrl = await fileToDataURL(file);
+        const payload = { title, desc, target, image_url: imageDataUrl, createdAt: Date.now() };
+        const encoded = encodeData(payload);
+        const longUrl = buildShareUrl(encoded);
+
+        // Optional: try TinyURL, fallback to long URL
+        let finalUrl = longUrl;
+        try {
+          const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+          const short = await res.text();
+          if (short.startsWith('http')) finalUrl = short;
+        } catch (err) {
+          console.warn('TinyURL failed, using long URL');
+        }
+
+        // Update output
+        document.getElementById('outLink').textContent = finalUrl;
+        document.getElementById('outLink').href = finalUrl;
+
+        // Copy button
+        document.getElementById('copyBtn').onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(finalUrl);
+            const btn = document.getElementById('copyBtn');
+            btn.innerHTML = '<i>✅</i> কপি হয়েছে!';
+            setTimeout(() => btn.innerHTML = '<i>📋</i> লিঙ্ক কপি করুন', 2000);
+          } catch (e) {
+            alert('কপি করতে সমস্যা হয়েছে।');
+          }
+        };
+
+        // Social share links
+        const text = encodeURIComponent(`${title} — ${desc || ''} ${finalUrl}`);
+        document.getElementById('wa').href = `https://wa.me/?text=${text}`;
+        document.getElementById('fb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(finalUrl)}`;
+        document.getElementById('tw').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(finalUrl)}`;
+
+        output.style.display = 'block';
+        alert('লিঙ্ক সফলভাবে তৈরি হয়েছে!');
+
+      } catch (err) {
+        console.error('Error:', err);
+        alert('ত্রুটি: ' + (err.message || 'অজানা ত্রুটি'));
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i>🚀</i> প্রিভিউ লিঙ্ক তৈরি করুন';
+        generateBtn.classList.remove('loading');
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      form.reset();
+      output.style.display = 'none';
+      preview.style.display = 'none';
+      imagePreview.style.display = 'none';
+    });
+
+    // Preview rendering on page load
+    (function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const p = urlParams.get('p');
+      if (p) {
+        const payload = decodeData(p);
+        if (payload && payload.title && payload.image_url) {
+          // Hide form card
+          document.querySelector('.card').style.display = 'none';
+
+          // Set preview content
+          document.getElementById('pvImg').src = payload.image_url;
+          document.getElementById('pvImgLink').href = payload.target;
+          document.getElementById('pvTitle').textContent = payload.title;
+          document.getElementById('pvDesc').textContent = payload.desc || '';
+          document.getElementById('pvOpen').href = payload.target;
+
+          // Set page title & OG tags
+          document.title = payload.title;
+          const ogTags = [
+            { property: 'og:title', content: payload.title },
+            { property: 'og:description', content: payload.desc || '' },
+            { property: 'og:image', content: payload.image_url },
+            { property: 'og:url', content: window.location.href },
+            { property: 'og:type', content: 'website' }
+          ];
+          ogTags.forEach(tag => {
+            let meta = document.createElement('meta');
+            meta.setAttribute('property', tag.property);
+            meta.content = tag.content;
+            document.head.appendChild(meta);
+          });
+
+          // Social share for preview page
+          const pageUrl = window.location.href;
+          document.getElementById('pvWa').href = `https://wa.me/?text=${encodeURIComponent(payload.title + ' ' + pageUrl)}`;
+          document.getElementById('pvFb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`;
+          document.getElementById('pvTw').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(payload.title)}&url=${encodeURIComponent(pageUrl)}`;
+
+          document.getElementById('pvCopy').onclick = async () => {
+            try {
+              await navigator.clipboard.writeText(pageUrl);
+              const btn = document.getElementById('pvCopy');
+              btn.innerHTML = '<i>✅</i> কপি হয়েছে!';
+              setTimeout(() => btn.innerHTML = '<i>📋</i> লিঙ্ক কপি করুন', 2000);
+            } catch (e) {
+              alert('কপি করতে সমস্যা হয়েছে।');
+            }
+          };
+
+          // Show preview
+          preview.style.display = 'block';
+        } else {
+          document.getElementById('output').innerHTML = `
+            <div class="warning">অবৈধ বা ক্ষতিগ্রস্ত প্রিভিউ ডেটা।</div>
+          `;
+          document.getElementById('output').style.display = 'block';
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
